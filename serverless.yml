@@ -1,0 +1,72 @@
+service: PrivateLambdaApp
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: ap-northeast-1
+  vpc:
+    securityGroupIds:
+      - ${cf:Vpc4PrivateLambda-${self:provider.stage}.PrivateSecurityGroupId}
+    subnetIds:
+      - ${cf:Vpc4PrivateLambda-${self:provider.stage}.PrivateSubnetId}
+
+package:
+  exclude:
+    - service/templates/**
+    - .eslintrc.json
+    - LICENSE
+    - README.md
+    - package.json
+    - package-lock.json
+    - service/__test__/**
+    - dynamodb/**
+    - api-gateway/**
+    - iam/**
+    - vpc/**
+  individually: true
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules:
+      packagePath: ./package.json
+      forceExclude:
+        - aws-sdk
+plugins:
+  - serverless-webpack
+  - serverless-pseudo-parameters
+
+functions:
+  privateLambdaGetPerson:
+    handler: service/src/lambda/getPerson/index.handler
+    name: "privateLambdaApp-getPerson-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/PrivateLambdaGetPersonRole-${self:provider.stage}"
+    description: "This function is test app."
+    environment:
+      PERSON_TABLE_NAME: PrivateLambdaPersonTable-${self:provider.stage}
+  privateLambdaPostPerson:
+    handler: service/src/lambda/postPerson/index.handler
+    name: "privateLambdaApp-postPerson-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/PrivateLambdaPostPersonRole-${self:provider.stage}"
+    description: "This function is test app."
+    environment:
+      PERSON_TABLE_NAME: PrivateLambdaPersonTable-${self:provider.stage}
+  privateLambdaPutPerson:
+    handler: service/src/lambda/putPerson/index.handler
+    name: "privateLambdaApp-putPerson-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/PrivateLambdaPutPersonRole-${self:provider.stage}"
+    description: "This function is test app."
+    environment:
+      PERSON_TABLE_NAME: PrivateLambdaPersonTable-${self:provider.stage}
+  privateLambdaDeletePerson:
+    handler: service/src/lambda/deletePerson/index.handler
+    name: "privateLambdaApp-deletePerson-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/PrivateLambdaDeletePersonRole-${self:provider.stage}"
+    description: "This function is test app."
+    environment:
+      PERSON_TABLE_NAME: PrivateLambdaPersonTable-${self:provider.stage}
+  privateLambdaGetCounter:
+    handler: service/src/lambda/getCounter/index.handler
+    name: "privateLambdaApp-getCounter-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/PrivateLambdaGetPersonRole-${self:provider.stage}"
+    description: "This function is test app."

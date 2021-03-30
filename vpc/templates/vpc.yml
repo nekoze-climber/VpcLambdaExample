@@ -1,0 +1,177 @@
+Resources:
+  Vpc4PrivateLambda: # VPC
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+      EnableDnsHostnames: false
+      EnableDnsSupport: true
+      InstanceTenancy: 'default'
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+  InternetGateway4PrivateLambda: # IGW
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+    DependsOn: Vpc4PrivateLambda
+  InternetGatewayAttachment4PrivateLambda: # IGW Attached to VPC
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId:
+        Ref: InternetGateway4PrivateLambda
+      VpcId:
+        Ref: Vpc4PrivateLambda
+    DependsOn:
+      - InternetGateway4PrivateLambda
+      - Vpc4PrivateLambda
+  PrivateSubnet4PrivateLambda: # Private Subnet
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'ap-northeast-1a'
+      CidrBlock: '10.0.1.0/24'
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+      VpcId:
+        Ref: Vpc4PrivateLambda
+    DependsOn: Vpc4PrivateLambda
+  PublicSubnet4PrivateLambda: # Public Subnet
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'ap-northeast-1a'
+      CidrBlock: '10.0.2.0/24'
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+      VpcId:
+        Ref: Vpc4PrivateLambda
+    DependsOn: Vpc4PrivateLambda
+  PublicRouteTable4PrivateLambda: # Public Route Table
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+      VpcId:
+        Ref: Vpc4PrivateLambda
+    DependsOn: Vpc4PrivateLambda
+  PrivateRouteTable4PrivateLambda: # Private Route Table
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+      VpcId:
+        Ref: Vpc4PrivateLambda
+    DependsOn: Vpc4PrivateLambda
+  PublicRouteTableAssociation4PrivateLambda: # Public Route Table Association
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet4PrivateLambda
+      RouteTableId:
+        Ref: PublicRouteTable4PrivateLambda
+    DependsOn:
+      - PublicSubnet4PrivateLambda
+      - PublicRouteTable4PrivateLambda
+  PrivateRouteTableAssociation4PrivateLambda: # Private Route Table Association
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet4PrivateLambda
+      RouteTableId:
+        Ref: PrivateRouteTable4PrivateLambda
+    DependsOn:
+      - PrivateSubnet4PrivateLambda
+      - PrivateRouteTable4PrivateLambda
+  NatElasticIP4PrivateLambda: # EIP
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: "vpc"
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+  NatGateway4PrivateLambda: # NatGateway
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        'Fn::GetAtt': [NatElasticIP4PrivateLambda, AllocationId]
+      SubnetId:
+        Ref: PublicSubnet4PrivateLambda
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+    DependsOn:
+      - NatElasticIP4PrivateLambda
+      - PublicSubnet4PrivateLambda
+  PublicRoute4PrivateLambda: # Public Route
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable4PrivateLambda
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId:
+        Ref: InternetGateway4PrivateLambda
+    DependsOn:
+      - PublicRouteTable4PrivateLambda
+      - InternetGateway4PrivateLambda
+  PrivateRoute4PrivateLambda: # Private Route
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable4PrivateLambda
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId:
+        Ref: NatGateway4PrivateLambda
+    DependsOn:
+      - PrivateRouteTable4PrivateLambda
+      - NatGateway4PrivateLambda
+  PublicSecrityGroup: # Public Security Group
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "It is for public subnet instance"
+      GroupName: "PublicSubnetInstanceSecurityGroup"
+      SecurityGroupEgress:
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 0
+          ToPort: "-1"
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: '0.0.0.0/0'
+          FromPort: 80
+          ToPort: 443
+          IpProtocol: "tcp"
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+      VpcId:
+        Ref: Vpc4PrivateLambda
+  PrivateSecrityGroup: # Private Security Group
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "It is for private subnet instance"
+      GroupName: "PrivateSubnetInstanceSecurityGroup"
+      SecurityGroupEgress:
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 0
+          ToPort: "-1"
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 80
+          ToPort: 443
+          IpProtocol: "tcp"
+      Tags:
+        - Key: Name
+          Value: VpcLambdaExample
+      VpcId:
+        Ref: Vpc4PrivateLambda
+Outputs:
+  PrivateSecurityGroupId:
+    Value:
+      "Fn::GetAtt": [PrivateSecrityGroup, GroupId]
+  PrivateSubnetId:
+    Value:
+      Ref: PrivateSubnet4PrivateLambda

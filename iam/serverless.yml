@@ -1,0 +1,16 @@
+service: PrivateLambdaIAMRole
+
+provider:
+  name: aws
+  stage: dev
+  region: ap-northeast-1
+
+plugins:
+  - serverless-pseudo-parameters
+
+package:
+  exclude:
+    - templates/**
+
+resources:
+  - ${file(./templates/iam.yml)}

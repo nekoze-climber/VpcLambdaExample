@@ -1,0 +1,74 @@
+service: PrivateLambdaApigatewayStepExample
+
+provider:
+  name: aws
+  stage: dev
+  region: ap-northeast-1
+
+package:
+  exclude:
+    - templates/**
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules:
+      packagePath: ./package.json
+      forceExclude:
+        - aws-sdk
+plugins:
+  - serverless-webpack
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+    
+functions:
+  starter:
+    handler: stepfunctions-example/starter/index.handler
+    name: "stepfunctions-example-starter-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/StepFunctionsExampleStarterRole-${self:provider.stage}"
+    description: "This function is test app."
+    environment:
+      STATE_MACHINE_ARN: arn:aws:states:${self:provider.region}:#{AWS::AccountId}:stateMachine:PrivateLambdaTest-${self:provider.stage}
+  first:
+    handler: stepfunctions-example/first/index.handler
+    name: "stepfunctions-example-first-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/StepFunctionsExampleFirstFinalRole-${self:provider.stage}"
+    description: "This function is test app."
+  second:
+    handler: stepfunctions-example/second/index.handler
+    name: "stepfunctions-example-second-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/StepFunctionsExampleSecondRole-${self:provider.stage}"
+    description: "This function is test app."
+    vpc:
+      securityGroupIds:
+        - ${cf:Vpc4PrivateLambda-${self:provider.stage}.PrivateSecurityGroupId}
+      subnetIds:
+        - ${cf:Vpc4PrivateLambda-${self:provider.stage}.PrivateSubnetId}
+  final:
+    handler: stepfunctions-example/final/index.handler
+    name: "stepfunctions-example-final-${self:provider.stage}"
+    role: "arn:aws:iam::#{AWS::AccountId}:role/StepFunctionsExampleFirstFinalRole-${self:provider.stage}"
+    description: "This function is test app."
+
+stepFunctions:
+  stateMachines:
+    PrivateLambdaTest:
+      name: PrivateLambdaTest-${self:provider.stage}
+      definition:
+        StartAt: FirstFunc
+        States:
+          FirstFunc:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [first, Arn]
+            Next: SecondFunc
+          SecondFunc:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [second, Arn]
+            Next: FinalFunc
+          FinalFunc:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [final, Arn]
+            End: true

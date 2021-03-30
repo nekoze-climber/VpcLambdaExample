@@ -1,0 +1,173 @@
+Resources:
+  PrivateLambdaGetPersonRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "PrivateLambdaGetPersonRole-${self:provider.stage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Path: "/"
+      Policies:
+        - PolicyName: "PrivateLambdaGetPersonPolicy-${self:provider.stage}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - dynamodb:Query
+                Resource:
+                  - "arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/PrivateLambdaPersonTable-${self:provider.stage}"
+                  - "arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/PrivateLambdaPersonTable-${self:provider.stage}/index/*"
+  PrivateLambdaPostPersonRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "PrivateLambdaPostPersonRole-${self:provider.stage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Path: "/"
+      Policies:
+        - PolicyName: "PrivateLambdaPostPersonPolicy-${self:provider.stage}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - dynamodb:PutItem
+                Resource:
+                  - "arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/PrivateLambdaPersonTable-${self:provider.stage}"
+  PrivateLambdaPutPersonRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "PrivateLambdaPutPersonRole-${self:provider.stage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Path: "/"
+      Policies:
+        - PolicyName: "PrivateLambdaPutPersonPolicy-${self:provider.stage}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - dynamodb:UpdateItem
+                Resource:
+                  - "arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/PrivateLambdaPersonTable-${self:provider.stage}"
+  PrivateLambdaDeletePersonRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "PrivateLambdaDeletePersonRole-${self:provider.stage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Path: "/"
+      Policies:
+        - PolicyName: "PrivateLambdaDeletePersonPolicy-${self:provider.stage}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:DeleteItem
+                Resource:
+                  - "arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/PrivateLambdaPersonTable-${self:provider.stage}"
+                  - "arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/PrivateLambdaPersonTable-${self:provider.stage}/index/*"
+  StatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "states.${self:provider.region}.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "lambda:InvokeFunction"
+                Resource: "*"
+  StepFunctionsExampleStarterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "StepFunctionsExampleStarterRole-${self:provider.stage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: "/"
+      Policies:
+        - PolicyName: "StepFunctionsExampleStarterPolicy-${self:provider.stage}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "states:StartExecution"
+                Resource: "*"
+  StepFunctionsExampleFirstFinalRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "StepFunctionsExampleFirstFinalRole-${self:provider.stage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  StepFunctionsExampleSecondRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "StepFunctionsExampleSecondRole-${self:provider.stage}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole

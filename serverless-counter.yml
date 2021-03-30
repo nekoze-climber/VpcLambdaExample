@@ -1,0 +1,38 @@
+service: PrivateLambdaApigatewayCounter
+
+provider:
+  name: aws
+  stage: dev
+  region: ap-northeast-1
+  resourcePolicy:
+    - Effect: Allow
+      Principal: "*"
+      Action: execute-api:Invoke
+      Resource:
+        - execute-api:/*/*/*
+      Condition:
+        IpAddress:
+          aws:SourceIp:
+            - "13.230.106.27"
+
+package:
+  exclude:
+    - templates/**
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules:
+      packagePath: ./package.json
+      forceExclude:
+        - aws-sdk
+plugins:
+  - serverless-webpack
+    
+functions:
+  get:
+    handler: api-gateway-counter/get/index.handler
+    events:
+      - http:
+          path: test/get
+          method: get

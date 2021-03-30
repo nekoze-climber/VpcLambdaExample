@@ -1,0 +1,45 @@
+Resources:
+  ApiGatewayRestApi:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Body: ${file(./templates/swagger.yaml)}
+  GetPersonApiPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: "privateLambdaApp-getPerson-${self:provider.stage}"
+      Action: "lambda:InvokeFunction"
+      Principal: "apigateway.amazonaws.com"
+  PostPersonApiPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: "privateLambdaApp-postPerson-${self:provider.stage}"
+      Action: "lambda:InvokeFunction"
+      Principal: "apigateway.amazonaws.com"
+  PutPersonApiPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: "privateLambdaApp-putPerson-${self:provider.stage}"
+      Action: "lambda:InvokeFunction"
+      Principal: "apigateway.amazonaws.com"
+  DeletePersonApiPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: "privateLambdaApp-deletePerson-${self:provider.stage}"
+      Action: "lambda:InvokeFunction"
+      Principal: "apigateway.amazonaws.com"
+  GetCounterApiPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: "privateLambdaApp-getCounter-${self:provider.stage}"
+      Action: "lambda:InvokeFunction"
+      Principal: "apigateway.amazonaws.com"
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      StageName: ${self:provider.stage}
+Outputs:
+  Id:
+    Value:
+      Ref: ApiGatewayRestApi
